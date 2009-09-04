@@ -1,0 +1,5 @@
+content		twitterbird												chrome/content/
+overlay		chrome://messenger/content/messenger.xul				chrome://twitterbird/content/messenger.xul
+locale		twitterbird en-US										chrome/locale/en-US/
+skin    	twitterbird classic/1.0									chrome/skin/
+resource	twitterbird												js/
