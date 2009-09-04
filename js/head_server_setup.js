@@ -38,6 +38,14 @@ var groups = [
   ["test.subscribe.simple", true],
   ["test.filter", true]
 ];
+/*
+var groups = [
+  ["twitter.timeline", true],
+  ["twitter.@", true],
+  ["twitter.direct", true],
+  ["twitter.favorites", true]
+];
+*/
 // Sets up the NNTP daemon object for use in fake server
 function setupNNTPDaemon() {
   var daemon = new nntpDaemon();
@@ -113,7 +121,6 @@ return;
                   .getService(Ci.nsIMsgAccountManager);
 
 	var server = acctmgr.createIncomingServer("username", "localhost", "nntp"); // Username cannot be null
-
   server.port = port;
   server.valid = false;
 
