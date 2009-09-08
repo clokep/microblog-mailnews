@@ -1,5 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim:set ts=2 sw=2 sts=2 et: */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,8 +19,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Joshua Cranmer <Pidgeot18@gmail.com>
- *   Patrick Cloke
+ *	 Joshua Cranmer <Pidgeot18@gmail.com>
+ *	 Patrick Cloke
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +40,16 @@
 
 var EXPORTED_SYMBOLS = ["nsMailServer", "nsMailReader", "server"];
 
+ 
+ function dump(aMessage) {
+	var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
+								   .getService(Components.interfaces.nsIConsoleService);
+	consoleService.logStringMessage("maild: " + aMessage);
+}
+function print(aMessage) { // Alias for dump
+	dump(aMessage);
+}
+
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var Cr = Components.results;
@@ -57,15 +65,15 @@ const fsDebugAll = 3;
 
 /**
  * JavaScript constructors for commonly-used classes; precreating these is a
- * speedup over doing the same from base principles.  See the docs at
+ * speedup over doing the same from base principles.	See the docs at
  * http://developer.mozilla.org/en/docs/Components.Constructor for details.
  */
 const ServerSocket = CC("@mozilla.org/network/server-socket;1",
-                        "nsIServerSocket",
-                        "init");
+						"nsIServerSocket",
+						"init");
 const BinaryInputStream = CC("@mozilla.org/binaryinputstream;1",
-                             "nsIBinaryInputStream",
-                             "setInputStream");
+							 "nsIBinaryInputStream",
+							 "setInputStream");
 
 // Time out after 3 minutes
 const TIMEOUT = 3*60*1000;
@@ -78,7 +86,6 @@ const TIMEOUT = 3*60*1000;
  ******************************************************************************
  * Typical usage:
  * var handler = <get handler from somewhere>
- * do_test_pending();
  * var server = new nsMailServer(handler);
  * // Port to use. I tend to like using 1024 + default port number myself.
  * server.start(port);
@@ -88,183 +95,140 @@ const TIMEOUT = 3*60*1000;
  * transaction = server.playTransaction();
  * // Verify that the transaction is correct...
  *
- * server.resetTest();
- * // Set up second test...
- * server.performTest();
- * transaction = server.playTransaction();
- *
  * // Finished with tests
  * server.stop();
  *
  * var thread = gThreadManager.currentThread;
  * while (thread.hasPendingEvents())
- *   thread.processNextEvent(true);
+ *	 thread.processNextEvent(true);
  *
  * do_test_finished();
  *****************************************************************************/
 function nsMailServer(handler) {
-  if (!gThreadManager)
-    gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
+	if (!gThreadManager)
+		gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
 
-  this._debug = fsDebugNone;
+	this._debug = fsDebugNone;
 
-  /** The port on which this server listens. */
-  this._port = undefined;
+	/** The port on which this server listens. */
+	this._port = undefined;
 
-  /** The socket associated with this. */
-  this._socket = null;
+	/** The socket associated with this. */
+	this._socket = null;
 
-  /**
-   * True if the socket in this is closed (and closure notifications have been
-   * sent and processed if the socket was ever opened), false otherwise.
-   */
-  this._socketClosed = true;
+	/**
+	 * True if the socket in this is closed (and closure notifications have been
+	 * sent and processed if the socket was ever opened), false otherwise.
+	 */
+	this._socketClosed = true;
 
-  this._handler = handler;
-  this._readers = [];
-  this._test = false;
+	this._handler = handler;
+	this._readers = [];
 }
 nsMailServer.prototype = {
-  onSocketAccepted : function (socket, trans) {
-    if (this._debug != fsDebugNone)
-      print("Received Connection from " + trans.host + ":" + trans.port);
+	onSocketAccepted : function (socket, trans) {
+		if (this._debug != fsDebugNone)
+			print("Received Connection from " + trans.host + ":" + trans.port);
 
-    const SEGMENT_SIZE = 1024;
-    const SEGMENT_COUNT = 1024;
-    var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
-                     .QueryInterface(Ci.nsIAsyncInputStream);
+		const SEGMENT_SIZE = 1024;
+		const SEGMENT_COUNT = 1024;
+		var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
+						 .QueryInterface(Ci.nsIAsyncInputStream);
 
-    var reader = new nsMailReader(this, this._handler, trans, this._debug);
-    this._readers.push(reader);
+		var reader = new nsMailReader(this, this._handler, trans, this._debug);
+		this._readers.push(reader);
 
-    // Note: must use main thread here, or we might get a GC that will cause
-    //       threadsafety assertions.  We really need to fix XPConnect so that
-    //       you can actually do things in multi-threaded JS.  :-(
-    input.asyncWait(reader, 0, 0, gThreadManager.mainThread);
-    this._test = true;
-  },
+		// Note: must use main thread here, or we might get a GC that will cause
+		//		 threadsafety assertions.	We really need to fix XPConnect so that
+		//		 you can actually do things in multi-threaded JS.	:-(
+		input.asyncWait(reader, 0, 0, gThreadManager.mainThread);
+	},
 
-  onStopListening : function (socket, status) {
-    if (this._debug != fsDebugNone)
-      print("Connection Lost " + status);
+	onStopListening : function (socket, status) {
+		if (this._debug != fsDebugNone)
+			print("Connection Lost " + status);
 
-    this._socketClosed = true;
-  },
+		this._socketClosed = true;
+	},
 
-  setDebugLevel : function (debug) {
-    this._debug = debug;
-    if (this._reader)
-      this._reader.setDebugLevel(debug);
-  },
+	setDebugLevel : function (debug) {
+		this._debug = debug;
+		if (this._reader)
+			this._reader.setDebugLevel(debug);
+	},
 
-  start : function (port) {
-    if (this._socket)
-      throw Cr.NS_ERROR_ALREADY_INITIALIZED;
+	start : function (port) {
+		if (this._socket)
+			throw Cr.NS_ERROR_ALREADY_INITIALIZED;
 
-    this._port = port;
-    this._socketClosed = false;
+		this._port = port;
+		this._socketClosed = false;
 
-    var socket = new ServerSocket(this._port,
-                                  true, // loopback only
-                                  -1);  // default number of pending connections
+		var socket = new ServerSocket(this._port,
+									  true, // loopback only
+									  -1);	// default number of pending connections
 
-    socket.asyncListen(this);
-    this._socket = socket;
-  },
+		socket.asyncListen(this);
+		this._socket = socket;
+	},
 
-  stop : function () {
-    if (!this._socket)
-      return;
+	stop : function () {
+		if (!this._socket)
+			return;
 
-    this._socket.close();
-    this._socket = null;
+		this._socket.close();
+		this._socket = null;
 
-    if (this._readers.some(function (e) { return e.observer.forced })) {
-      do_test_finished();
-      return;
-    }
+		// spin an event loop and wait for the socket-close notification
+		var thr = gThreadManager.currentThread;
+		while (!this._socketClosed)
+			// Don't wait for the next event, just in case there isn't one.
+			thr.processNextEvent(false);
+	},
 
-    // spin an event loop and wait for the socket-close notification
-    var thr = gThreadManager.currentThread;
-    while (!this._socketClosed)
-      // Don't wait for the next event, just in case there isn't one.
-      thr.processNextEvent(false);
-  },
-  stopTest : function () {
-    this._test = false;
-  },
+	// NSISUPPORTS
 
-  // NSISUPPORTS
+	//
+	// see nsISupports.QueryInterface
+	//
+	QueryInterface : function (iid) {
+		if (iid.equals(Ci.nsIServerSocketListener) ||
+				iid.equals(Ci.nsISupports))
+			return this;
 
-  //
-  // see nsISupports.QueryInterface
-  //
-  QueryInterface : function (iid) {
-    if (iid.equals(Ci.nsIServerSocketListener) ||
-        iid.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  },
+		throw Cr.NS_ERROR_NO_INTERFACE;
+	},
 
 
-  // NON-XPCOM PUBLIC API
+	// NON-XPCOM PUBLIC API
 
-  /**
-   * Returns true if this server is not running (and is not in the process of
-   * serving any requests still to be processed when the server was last
-   * stopped after being run).
-   */
-  isStopped : function () {
-    return this._socketClosed;
-  },
+	/**
+	 * Returns true if this server is not running (and is not in the process of
+	 * serving any requests still to be processed when the server was last
+	 * stopped after being run).
+	 */
+	isStopped : function () {
+		return this._socketClosed;
+	},
 
-  /**
-   * Runs the test. It will not exit until the test has finished.
-   */
-  performTest : function (watchWord) {
-    this._watchWord = watchWord;
-
-    var thread = gThreadManager.currentThread;
-    while (!this.isTestFinished())
-      thread.processNextEvent(false);
-  },
-
-  /**
-   * Returns true if the current processing test has finished.
-   */
-  isTestFinished : function() {
-    return this._readers.length > 0 && !this._test;
-  },
-
-  /**
-   * Returns the commands run between the server and client.
-   * The return is an object with two variables (us and them), both of which
-   * are arrays returning the commands given by each server.
-   */
-  playTransaction : function() {
-    if (this._readers.some(function (e) { return e.observer.forced; }))
-      throw "Server timed out!";
-    if (this._readers.length == 1)
-      return this._readers[0].transaction;
-    else
-      return this._readers.map(function (e) { return e.transaction; });
-  },
-
-  /**
-   * Prepares for the next test.
-   */
-  resetTest : function() {
-    this._readers = this._readers.filter(function (reader) {
-      return reader._isRunning;
-    });
-    this._test = true;
-  }
+	/**
+	 * Returns the commands run between the server and client.
+	 * The return is an object with two variables (us and them), both of which
+	 * are arrays returning the commands given by each server.
+	 */
+	playTransaction : function() {
+		if (this._readers.some(function (e) { return e.observer.forced; }))
+			throw "Server timed out!";
+		if (this._readers.length == 1)
+			return this._readers[0].transaction;
+		else
+			return this._readers.map(function (e) { return e.transaction; });
+	}
 };
 
 function readTo(input, count, arr) {
-  var old = new BinaryInputStream(input).readByteArray(count);
-  Array.prototype.push.apply(arr, old);
+	var old = new BinaryInputStream(input).readByteArray(count);
+	Array.prototype.push.apply(arr, old);
 }
 
 /******************************************************************************
@@ -272,14 +236,14 @@ function readTo(input, count, arr) {
  * All specific handling is passed off to the handler, which is responsible
  * for maintaining its own state. The following commands are required for the
  * handler object:
- * onError       Called when handler[command] does not exist with both the
- *               command and rest-of-line as arguments
- * onStartup     Called on initialization with no arguments
- * onMultiline   Called when in multiline with the entire line as an argument
- * onPassword    Called when a password line is expected as the entire argument
- * postCommand   Called after every command with this reader as the argument
- * [command]     An untranslated command with the rest of the line as the
- *               argument. Defined as everything to the first space
+ * onError			 Called when handler[command] does not exist with both the
+ *							 command and rest-of-line as arguments
+ * onStartup		 Called on initialization with no arguments
+ * onMultiline	 Called when in multiline with the entire line as an argument
+ * onPassword		Called when a password line is expected as the entire argument
+ * postCommand	 Called after every command with this reader as the argument
+ * [command]		 An untranslated command with the rest of the line as the
+ *							 argument. Defined as everything to the first space
  *
  * All functions, except onMultiline, onPassword and postCommand, treat the
  * returned value as the text to be sent to the client; a newline at the end
@@ -291,210 +255,206 @@ function readTo(input, count, arr) {
  * necessary to trigger the postCommand handler).
  *
  * This object has the following supplemental functions for use by handlers:
- * closeSocket  Performs a server-side socket closing
+ * closeSocket	Performs a server-side socket closing
  * setMultiline Sets the multiline mode based on the argument
  *****************************************************************************/
 function nsMailReader(server, handler, transport, debug) {
-  this._debug = debug;
-  this._server = server;
-  this._buffer = [];
-  this._lines = [];
-  this._handler = handler;
-  this._transport = transport;
-  var output = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);
-  this._output = output;
-  this.transaction = { us : [], them : [] };
+	this._debug = debug;
+	this._server = server;
+	this._buffer = [];
+	this._lines = [];
+	this._handler = handler;
+	this._transport = transport;
+	var output = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);
+	this._output = output;
+	this.transaction = { us : [], them : [] };
 
-  // Send response line
-  var response = this._handler.onStartup();
-  response = response.replace(/([^\r])\n/g,"$1\r\n");
-  if (response.charAt(response.length-1) != '\n')
-    response = response + "\r\n";
-  this.transaction.us.push(response);
-  this._output.write(response, response.length);
-  this._output.flush();
+	// Send response line
+	var response = this._handler.onStartup();
+	response = response.replace(/([^\r])\n/g,"$1\r\n");
+	if (response.charAt(response.length-1) != '\n')
+		response = response + "\r\n";
+	this.transaction.us.push(response);
+	this._output.write(response, response.length);
+	this._output.flush();
 
-  this._multiline = false;
+	this._multiline = false;
 
-  this._isRunning = true;
-  
-  this.observer = {
-    server : server,
-    forced : false,
-    notify : function (timer) {
-      this.forced = true;
-      this.server.stopTest();
-      this.server.stop();
-    },
-    QueryInterface : function (iid) {
-      if (iid.equals(Ci.nsITimerCallback) || iid.equals(Ci.nsISupports))
-        return this;
+	this._isRunning = true;
+	
+	this.observer = {
+		server : server,
+		forced : false,
+		notify : function (timer) {
+			this.forced = true;
+			this.server.stopTest();
+			this.server.stop();
+		},
+		QueryInterface : function (iid) {
+			if (iid.equals(Ci.nsITimerCallback) || iid.equals(Ci.nsISupports))
+				return this;
 
-      throw Cr.NS_ERROR_NO_INTERFACE;
-    }
-  };
-  this.timer = Cc["@mozilla.org/timer;1"].createInstance()
-                                         .QueryInterface(Ci.nsITimer);
-  this.timer.initWithCallback(this.observer, TIMEOUT,
-                              Ci.nsITimer.TYPE_ONE_SHOT);
+			throw Cr.NS_ERROR_NO_INTERFACE;
+		}
+	};
+	this.timer = Cc["@mozilla.org/timer;1"].createInstance()
+										   .QueryInterface(Ci.nsITimer);
+	this.timer.initWithCallback(this.observer,
+								TIMEOUT,
+								Ci.nsITimer.TYPE_ONE_SHOT);
 }
 nsMailReader.prototype = {
-  _findLines : function () {
-    var buf = this._buffer;
-    for (var crlfLoc = buf.indexOf(13); crlfLoc >= 0;
-        crlfLoc = buf.indexOf(13, crlfLoc + 1)) {
-      if (buf[crlfLoc + 1] == 10)
-        break;
-    }
-    if (crlfLoc == -1)
-      // We failed to find a newline
-      return;
+	_findLines : function () {
+		var buf = this._buffer;
+		for (var crlfLoc = buf.indexOf(13); crlfLoc >= 0;
+				crlfLoc = buf.indexOf(13, crlfLoc + 1)) {
+			if (buf[crlfLoc + 1] == 10)
+				break;
+		}
+		if (crlfLoc == -1)
+			// We failed to find a newline
+			return;
 
-    var line = String.fromCharCode.apply(null, buf.slice(0, crlfLoc));
-    this._buffer = buf.slice(crlfLoc + 2);
-    this._lines.push(line);
-    this._findLines();
-  },
+		var line = String.fromCharCode.apply(null, buf.slice(0, crlfLoc));
+		this._buffer = buf.slice(crlfLoc + 2);
+		this._lines.push(line);
+		this._findLines();
+	},
 
-  onInputStreamReady : function (stream) {
-    if (this.observer.forced)
-      return;
+	onInputStreamReady : function (stream) {
+		if (this.observer.forced)
+			return;
 
-    this.timer.cancel();
-    try {
-      var bytes = stream.available();
-    } catch (e) {
-      // Someone, not us, has closed the stream. This means we can't get any
-      // more data from the stream, so we'll just go and close our socket.
-      this._realCloseSocket();
-      return;
-    }
-    readTo(stream, bytes, this._buffer);
-    this._findLines();
+		this.timer.cancel();
+		try {
+			var bytes = stream.available();
+		} catch (e) {
+			// Someone, not us, has closed the stream. This means we can't get any
+			// more data from the stream, so we'll just go and close our socket.
+			this._realCloseSocket();
+			return;
+		}
+		readTo(stream, bytes, this._buffer);
+		this._findLines();
 
-    while (this._lines.length > 0) {
-      var line = this._lines.shift();
+		while (this._lines.length > 0) {
+			var line = this._lines.shift();
 
-      if (this._debug == fsDebugAll)
-        print("RECV: " + line);
+			if (this._debug == fsDebugAll)
+				print("RECV: " + line);
 
-      var response;
-      try {
-        if (this._multiline) {
-          response = this._handler.onMultiline(line);
+			var response;
+			try {
+				if (this._multiline) {
+					response = this._handler.onMultiline(line);
 
-          if (response === undefined)
-            continue;
-        } else if (this._expectPassword) {
-          dump("expecting password\n");
-          response = this._handler.onPassword(line);
+					if (response === undefined)
+						continue;
+				} else if (this._expectPassword) {
+					dump("expecting password\n");
+					response = this._handler.onPassword(line);
 
-          if (response == undefined)
-            continue;
-        } else {
-          // Record the transaction
-          this.transaction.them.push(line);
+					if (response == undefined)
+						continue;
+				} else {
+					// Record the transaction
+					this.transaction.them.push(line);
 
-          // Find the command and splice it out...
-          var splitter = line.indexOf(" ");
-          var command = splitter == -1 ? line : line.substring(0,splitter);
-          var args = splitter == -1 ? "" : line.substring(splitter+1);
+					// Find the command and splice it out...
+					var splitter = line.indexOf(" ");
+					var command = splitter == -1 ? line : line.substring(0,splitter);
+					var args = splitter == -1 ? "" : line.substring(splitter+1);
 
-          // By convention, commands are uppercase
-          command = command.toUpperCase();
+					// By convention, commands are uppercase
+					command = command.toUpperCase();
 
-          if (this._debug == fsDebugRecv || this._debug == fsDebugRecvSend)
-            print("RECV: " + command);
+					if (this._debug == fsDebugRecv || this._debug == fsDebugRecvSend || this._debug == fsDebugAll)
+						print("RECV: " + command);
 
-          if (command in this._handler)
-            response = this._handler[command](args);
-          else
-            response = this._handler.onError(command, args);
-        }
+					if (command in this._handler)
+						response = this._handler[command](args);
+					else
+						response = this._handler.onError(command, args);
+				}
 
-        this._preventLFMunge = false;
-        this._handler.postCommand(this);
-      } catch (e) {
-        response = this._handler.onServerFault();
-        if (e instanceof Error) {
-          dump(e.name + ": " + e.message + '\n');
-          dump("File: " + e.fileName + " Line: " + e.lineNumber + '\n');
-          dump('Stack trace:\n' + e.stack);
-        } else {
-          dump("Exception caught: " + e + '\n');
-        }
-      }
+				this._preventLFMunge = false;
+				this._handler.postCommand(this);
+			} catch (e) {
+				response = this._handler.onServerFault();
+				if (e instanceof Error) {
+					dump(e.name + ": " + e.message + '\n');
+					dump("File: " + e.fileName + " Line: " + e.lineNumber + '\n');
+					dump('Stack trace:\n' + e.stack);
+				} else {
+					dump("Exception caught: " + e + '\n');
+				}
+			}
 
-      if (!this._preventLFMunge)
-        response = response.replace(/([^\r])\n/g,"$1\r\n");
+			if (!this._preventLFMunge)
+				response = response.replace(/([^\r])\n/g,"$1\r\n");
 
-      if (response.charAt(response.length-1) != '\n')
-       response = response + "\r\n";
+			if (response.charAt(response.length-1) != '\n')
+			 response = response + "\r\n";
 
-      if (this._debug == fsDebugRecvSend) {
-        print("SEND: " + response.split(" ", 1)[0]);
-      }
-      else if (this._debug == fsDebugAll) {
-        var responses = response.split("\n");
-        responses.forEach(function (line) { print("SEND: " + line); });
-      }
+			if (this._debug == fsDebugRecvSend) {
+				print("SEND: " + response.split(" ", 1)[0]);
+			} else if (this._debug == fsDebugAll) {
+				var responses = response.split("\n");
+				responses.forEach(function (line) { print("SEND: " + line); });
+			}
 
-      this.transaction.us.push(response);
-      this._output.write(response, response.length);
-      this._output.flush();
+			this.transaction.us.push(response);
+			this._output.write(response, response.length);
+			this._output.flush();
 
-      if (this._signalStop)
-        this._realCloseSocket();
-    }
+			if (this._signalStop)
+				this._realCloseSocket();
+		}
 
-    if (this._isRunning) {
-      stream.asyncWait(this, 0, 0, gThreadManager.currentThread);
-      this.timer.initWithCallback(this.observer, TIMEOUT,
-                                  Ci.nsITimer.TYPE_ONE_SHOT);
-    }
-  },
+		if (this._isRunning) {
+			stream.asyncWait(this, 0, 0, gThreadManager.currentThread);
+			this.timer.initWithCallback(this.observer,
+										TIMEOUT,
+										Ci.nsITimer.TYPE_ONE_SHOT);
+		}
+	},
 
-  closeSocket : function () {
-    this._signalStop = true;
-  },
-  _realCloseSocket : function () {
-    this._isRunning = false;
-    this._output.close();
-    this._transport.close(Cr.NS_OK);
-    this._server.stopTest();
-  },
+	closeSocket : function () {
+		this._signalStop = true;
+	},
+	_realCloseSocket : function () {
+		this._isRunning = false;
+		this._output.close();
+		this._transport.close(Cr.NS_OK);
+	},
 
-  setMultiline : function (multi) {
-    this._multiline = multi;
-  },
+	setMultiline : function (multi) {
+		this._multiline = multi;
+	},
 
-  setExpectPassword : function (expectPassword) {
-    this._expectPassword = expectPassword;
-  },
+	setExpectPassword : function (expectPassword) {
+		this._expectPassword = expectPassword;
+	},
 
-  setDebugLevel : function (debug) {
-    this._debug = debug;
-  },
+	setDebugLevel : function (debug) {
+		this._debug = debug;
+	},
 
-  preventLFMunge : function () {
-    this._preventLFMunge = true;
-  },
+	preventLFMunge : function () {
+		this._preventLFMunge = true;
+	},
 
-  get watchWord () {
-    return this._server._watchWord;
-  },
+	get watchWord () {
+		return this._server._watchWord;
+	},
 
-  stopTest : function () {
-    this._server.stopTest();
-  },
+	QueryInterface : function (iid) {
+		if (iid.equals(Ci.nsIInputStreamCallback) ||
+				iid.equals(Ci.nsISupports))
+			return this;
 
-  QueryInterface : function (iid) {
-    if (iid.equals(Ci.nsIInputStreamCallback) ||
-        iid.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  }
+		throw Cr.NS_ERROR_NO_INTERFACE;
+	}
 };
 
 /**
@@ -515,17 +475,16 @@ nsMailReader.prototype = {
  * doesn't work, simply due to how the internal event loop is spun and stopped.
  *
  * @param port
- *   the port on which the server will run, or -1 if there exists no preference
- *   for a specific port; note that attempting to use some values for this
- *   parameter (particularly those below 1024) may cause this method to throw or
- *   may result in the server being prematurely shut down
+ *	 the port on which the server will run, or -1 if there exists no preference
+ *	 for a specific port; note that attempting to use some values for this
+ *	 parameter (particularly those below 1024) may cause this method to throw or
+ *	 may result in the server being prematurely shut down
  * @param handler
- *   the handler (as defined in the documentation comment above nsMailReader) to
- *   use on the server
+ *	 the handler (as defined in the documentation comment above nsMailReader) to
+ *	 use on the server
  */
 function server(port, handler) {
-  var srv = new nsMailServer(handler);
-  srv.start(port);
-  srv.performTest();
-  return srv.playTransaction();
+	var srv = new nsMailServer(handler);
+	srv.start(port);
+	return srv.playTransaction();
 }

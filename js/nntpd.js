@@ -166,7 +166,7 @@ NNTP_RFC977_handler.prototype = {
      response += ".";
      return response;
   },
-  GROUP : function(args) {
+  GROUP : function(args) { // Load messages here?
     var group = this._daemon.getGroup(args);
     if (group == null)
       return "411 no such news group";
