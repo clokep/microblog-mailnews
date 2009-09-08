@@ -7,10 +7,8 @@ Components.utils.import("resource://twitterbird/nntpd.js");
 function dump(aMessage) {
 	var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
 								   .getService(Components.interfaces.nsIConsoleService);
-	consoleService.logStringMessage("ThunderShows: " + aMessage);
+	consoleService.logStringMessage("Twitterbird: " + aMessage);
 }
-
-dump("test");
 
 // Generic mailnews resource scripts
 //Components.utils.import("resource://test/mailDirService.js");
@@ -21,72 +19,36 @@ var Cr = Components.results;
 var CC = Components.Constructor;
 
 const kSimpleNewsArticle =
-  "From: John Doe <john.doe@example.com>\n"+
-  "Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
-  "Newsgroups: test.subscribe.simple\n"+
-  "Subject: H2G2 -- What does it mean?\n"+
-  "Message-ID: <TSS1@nntp.test>\n"+
-  "\n"+
-  "What does the acronym H2G2 stand for? I've seen it before...\n";
+	"From: John Doe <john.doe@example.com>\n"+
+	"Date: Sat, 24 Mar 1990 10:59:24 -0500\n"+
+	"Newsgroups: test.subscribe.simple\n"+
+	"Subject: H2G2 -- What does it mean?\n"+
+	"Message-ID: <TSS1@nntp.test>\n"+
+	"\n"+
+	"What does the acronym H2G2 stand for? I've seen it before...\n";
 
 // The groups to set up on the fake server.
 // It is an array of tuples, where the first element is the group name and the
 // second element is whether or not we should subscribe to it.
 var groups = [
-  ["test.empty", false],
-  ["test.subscribe.empty", true],
-  ["test.subscribe.simple", true],
-  ["test.filter", true]
+	["twitter.DarkJedi613.timeline", true],
+	["twitter.DarkJedi613.at", true],
+	["twitter.DarkJedi613.direct", true],
+	["twitter.DarkJedi613.favorites", true]
 ];
-/*
-var groups = [
-  ["twitter.timeline", true],
-  ["twitter.@", true],
-  ["twitter.direct", true],
-  ["twitter.favorites", true]
-];
-*/
+
 // Sets up the NNTP daemon object for use in fake server
 function setupNNTPDaemon() {
-  var daemon = new nntpDaemon();
+	var daemon = new nntpDaemon();
 
-  groups.forEach(function (element) {
-    daemon.addGroup(element[0]);
-  });
-/*
-  var auto_add = do_get_file("postings/auto-add/");
-  var files = [];
-  var enumerator = auto_add.directoryEntries;
-  while (enumerator.hasMoreElements())
-    files.push(enumerator.getNext().QueryInterface(Ci.nsIFile));
+	groups.forEach(function (element) {
+		daemon.addGroup(element[0]);
+	});
 
-  files.sort(function (a, b) {
-    if (a.leafName == b.leafName) return 0;
-    return a.leafName < b.leafName ? -1 : 1;
-  });
+	var article = new newsArticle(kSimpleNewsArticle);
+	daemon.addArticleToGroup(article, "twitter.DarkJedi613.at", 1);
 
-  files.forEach(function (file) {
-      var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
-                      .createInstance(Ci.nsIFileInputStream);
-      var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
-                      .createInstance(Ci.nsIScriptableInputStream);
-      fstream.init(file, -1, 0, 0);
-      sstream.init(fstream);
-
-      var post = "";
-      for (let part = sstream.read(4096); part.length > 0;) {
-        post += part;
-        part = sstream.read(4096);
-      }
-      sstream.close();
-      fstream.close();
-      daemon.addArticle(new newsArticle(post));
-  });*/
-
-  var article = new newsArticle(kSimpleNewsArticle);
-  daemon.addArticleToGroup(article, "test.subscribe.simple", 1);
-
-  return daemon;
+	return daemon;
 }
 
 // Enable strict threading
@@ -102,111 +64,34 @@ const NNTP_PORT = 1024+119;
 var _server = null;
 
 function subscribeServer(incomingServer) {
-  // Subscribe to newsgroups
-  incomingServer.QueryInterface(Ci.nsINntpIncomingServer);
-  groups.forEach(function (element) {
-      if (element[1])
-        incomingServer.subscribeToNewsgroup(element[0]);
-    });
-  // Only allow one connection
-  incomingServer.maximumConnectionsNumber = 1;
+	// Subscribe to newsgroups
+	incomingServer.QueryInterface(Ci.nsINntpIncomingServer);
+	groups.forEach(function (element) {
+		if (element[1])
+			incomingServer.subscribeToNewsgroup(element[0]);
+	});
+	// Only allow one connection
+	incomingServer.maximumConnectionsNumber = 1;
 }
 
 // Sets up the client-side portion of fakeserver
 function setupLocalServer(port) {
-return;
-  if (_server != null)
-    return _server;
-  var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
-                  .getService(Ci.nsIMsgAccountManager);
+	if (_server != null)
+		return _server;
+	var acctmgr = Cc["@mozilla.org/messenger/account-manager;1"]
+					.getService(Ci.nsIMsgAccountManager);
 
-	var server = acctmgr.createIncomingServer("username", "localhost", "nntp"); // Username cannot be null
-  server.port = port;
-  server.valid = false;
+	var server = acctmgr.createIncomingServer("DarkJedi613", "localhost", "nntp"); // Username cannot be null
+	server.port = port;
+	server.valid = false;
 
-  var account = acctmgr.createAccount();
-  account.incomingServer = server;
-  server.valid = true;
+	var account = acctmgr.createAccount();
+	account.incomingServer = server;
+	server.valid = true;
 
-  subscribeServer(server);
+	subscribeServer(server);
 
-  _server = server;
+	_server = server;
 
-  return server;
-}
-
-const URLCreator = Cc["@mozilla.org/messenger/messageservice;1?type=news"]
-                     .getService(Ci.nsINntpService)
-                     .QueryInterface(Ci.nsIProtocolHandler);
-
-// Sets up a protocol object and prepares to run the test for the news url
-function setupProtocolTest(port, newsUrl, incomingServer) {
-  var url;
-  if (newsUrl instanceof Ci.nsIMsgMailNewsUrl) {
-    url = newsUrl;
-  } else {
-    url = URLCreator.newURI(newsUrl, null, null);
-  }
-
-  var newsServer = incomingServer;
-  if (!newsServer)
-    newsServer = setupLocalServer(port);
-
-  var listener = {
-    onStartRequest : function () {},
-    onStopRequest : function ()  {
-      if (!this.called) {
-        this.called = true;
-        newsServer.closeCachedConnections();
-        this.called = false;
-      }
-    },
-    onDataAvailable : function () {},
-    QueryInterface : function (iid) {
-      if (iid.equals(Ci.nsIStreamListener) ||
-          iid.equals(Ci.nsISupports))
-        return this;
-
-      throw Cr.NS_ERROR_NO_INTERFACE;
-    }
-  }
-  listener.called = false;
-  newsServer.loadNewsUrl(url, null, listener);
-}
-
-function create_post(baseURL, file) {
-  var url = URLCreator.newURI(baseURL, null, null);
-  url.QueryInterface(Ci.nsINntpUrl);
-
-  var post = Cc["@mozilla.org/messenger/nntpnewsgrouppost;1"]
-               .createInstance(Ci.nsINNTPNewsgroupPost);
-  post.postMessageFile = do_get_file(file);
-  url.messageToPost = post;
-  return url;
-}
-
-function resetFolder(folder) {
-  var headerEnum = folder.messages;
-  var headers = [];
-  while (headerEnum.hasMoreElements())
-    headers.push(headerEnum.getNext().QueryInterface(Ci.nsIMsgDBHdr));
-
-  var db = folder.msgDatabase;
-  db.dBFolderInfo.knownArtsSet = "";
-  for each (var header in headers) {
-    db.DeleteHeader(header, null, true, false);
-  }
-  dump("resetting folder\n");
-  folder.msgDatabase = null;
-}
-
-function do_check_transaction(real, expected) {
-  // real.them may have an extra QUIT on the end, where the stream is only
-  // closed after we have a chance to process it and not them. We therefore
-  // excise this from the list
-  if (real.them[real.them.length-1] == "QUIT")
-    real.them.pop();
-
-  do_check_eq(real.them.join(","), expected.join(","));
-  dump("Passed test " + test + "\n");
+	return server;
 }

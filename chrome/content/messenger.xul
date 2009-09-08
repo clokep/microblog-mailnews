@@ -36,10 +36,7 @@
    - ***** END LICENSE BLOCK ***** -->
 <!--<!DOCTYPE overlay SYSTEM "chrome://test/locale/messenger.dtd">//-->
 <!DOCTYPE overlay>
-<overlay id="c_Test"
+<overlay id="twitterbird"
 		 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <script type="application/x-javascript" src="chrome://twitterbird/content/messenger.js"/>
-	<menupopup id="taskPopup">
-		<menuitem id="helloworld-hello" label="Hello World"/>
-	</menupopup>
 </overlay>
