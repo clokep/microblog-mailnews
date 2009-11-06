@@ -11,9 +11,10 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is the fakeserver.
+ * The Original Code is the Twitterbird.
  *
- * The Initial Developer of the Original Code is Twitterbird.
+ * The Initial Developer of the Original Code is
+ * Patrick Cloke.
  * Portions created by the Initial Developer are Copyright (C) 2009
  * the Initial Developer. All Rights Reserved.
  *
@@ -33,51 +34,4 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
- function dump(aMessage) {
-	var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
-								   .getService(Components.interfaces.nsIConsoleService);
-	consoleService.logStringMessage("Twitterbird: " + aMessage);
-}
 
-Components.utils.import("resource://twitterbird/maild.js");
-Components.utils.import("resource://twitterbird/nntpd.js");
-Components.utils.import("resource://twitterbird/head_server_setup.js");
-
-// The basic daemon to use for nntpd.js implementations
-var daemon = setupNNTPDaemon();
-
-// This gets used to CREATE a server, so this needs to be done in a special create account screen
-if (false) {
-	var localserver = setupLocalServer(NNTP_PORT);
-}
-
-// Start up the server for connections
-var handler = new NNTP_RFC977_handler(daemon);
-var server  = new nsMailServer(handler);
-server.start(NNTP_PORT);
-//server.setDebugLevel(3); // fsDebugAll
-
-Components.utils.import("resource://twitterbird/twitterHelper.jsm");
-Components.utils.import("resource://twitterbird/twitter-glue.js");
-Components.utils.import("resource://twitterbird/credientials.js"); // Contains user and pass variables
-
-var twh = new TwitterHelper(user,
-							pass,
-							null,
-							"twitter");
-var format = "json"; // or xml
-							
-function cb(aTwitterHelper, aAnswer, aContext) {
-	var i = 1;
-	for each(var tweet in aAnswer) {
-		var article = new newsArticle2(tweet, "twitter." + user + ".timeline");
-		daemon.addArticleToGroup(article, "twitter." + user + ".timeline", i++);
-	}
-}
-
-twh.statuses.user_timeline(cb,
-						   cb,
-						   null,
-						   format,
-						   null);
