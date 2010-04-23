@@ -42,11 +42,47 @@ function dump(aMessage) {
 	consoleService.logStringMessage("Twitterbird: " + aMessage);
 }
 
+// From http://blog.sidstamm.com/2009/08/inheriting-xpcom-across-languages.html
+// Given two instances, copy in all properties from "super"
+// and create forwarding methods for all functions.
+function inheritCurrentInterface(self, super) {
+	for(let prop in super) {
+		if(typeof self[prop] === 'undefined')
+			if(typeof super[prop] === 'function') {
+				(function(prop) {
+					self[prop] = function() { 
+						return super[prop].apply(super,arguments); 
+					};
+				})(prop);
+			}
+			else
+				self[prop] = super[prop];
+	}
+}
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 var nsTwitterIncomingServer = {
 	// Implement nsIMsgIncomingServer and inherits from mailnews/base/util/nsMsgIncomingServer
+	//grab initial methods (nsIMsgIncomingServer)
+	inheritCurrentInterface(this, Components.interfaces.nsIMsgIncomingServer);
 }
 nsTwitterIncomingServer.prototype = {
+	name: "twitter",
+	chromePackageName: "twitterbird",
+	showPanel: function(server) {
+		// don't show the panel for news, rss, or local accounts
+		return (server.type != "nntp" && server.type != "rss" &&
+				server.type != "none");
+	},
 
+	QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
+	classDescription: "Twitter Incoming Server",
+	classID: Components.ID("{0454A9C6-CF19-11DE-907E-FEFD55D89593}"),
+	contractID: "@mozilla.org/messenger/server;1?twitter",
+
+	_xpcom_categories: [{category: "",
+						 entry: ""}]
 };
 
 var nsTwitterFolder = {
@@ -69,29 +105,7 @@ var nsITwitterProtocol = {
 
 dump("Here");
 
-// From http://blog.sidstamm.com/2009/08/inheriting-xpcom-across-languages.html
-// Given two instances, copy in all properties from "super"
-// and create forwarding methods for all functions.
-function inheritCurrentInterface(self, super) {
-	for(let prop in super) {
-		if(typeof self[prop] === 'undefined')
-			if(typeof super[prop] === 'function') {
-				(function(prop) {
-					self[prop] = function() { 
-						return super[prop].apply(super,arguments); 
-					};
-				})(prop);
-			}
-			else
-				self[prop] = super[prop];
-	}
-}
-
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
 function TwitterModule() {
-	//grab initial methods (nsIMsgIncomingServer)
-	inheritCurrentInterface(this, Components.interfaces.nsIMsgIncomingServer);
 }
 TwitterModule.prototype = {
 	// Inherit from nsIMsgIncomingServer

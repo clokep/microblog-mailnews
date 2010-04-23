@@ -42,27 +42,36 @@
 	
 	<Description about="urn:mozilla:install-manifest">
 		<!-- Extension Information //-->
-		<em:id>{0123982f-7C1a-40cd-a584-61153cc8037b}</em:id>
+		<em:id>twitterbird@patrick.cloke</em:id>
 		<em:version>0.1pre</em:version>
 		<em:type>2</em:type> <!-- Extension //-->
 
 		<!-- Front End MetaData //-->
 		<em:name>Twitterbird</em:name>
-		<em:description>Display Twitter account as a newsgroup in Thunderbird.</em:description>
+		<em:description>Adds Twitter/Identi.ca API as an account type.</em:description>
 		<em:creator>Patrick Cloke</em:creator>
-		<!--<em:homepageURL>http://code.google.com/p/thundershows/</em:homepageURL>//-->
+		<em:homepageURL>http://code.google.com/p/twitterbird/</em:homepageURL>
 
-		<!--<em:aboutURL>chrome://thundershows/content/about.xul</em:aboutURL>//-->
-		<!--<em:iconURL>chrome://thundershows/content/thundershows.png</em:iconURL>//-->
-		<!--<em:optionsURL>chrome://thundershows/content/options.xul</em:optionsURL>//-->
+		<!-- Internal References //-->
+		<!--<em:aboutURL>chrome://twitterbird/content/about.xul</em:aboutURL>//-->
+		<!--<em:iconURL>chrome://twitterbird/content/thundershows.png</em:iconURL>//-->
+		<!--<em:optionsURL>chrome://twitterbird/content/options.xul</em:optionsURL>//-->
 
 		<!-- Target Applications //-->
 		<em:targetApplication>
 			<Description>
 				<!-- Thunderbird //-->
 				<em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
-				<em:minVersion>3.0b3</em:minVersion>
-				<em:maxVersion>3.1a1pre</em:maxVersion>
+				<em:minVersion>3.1b2pre</em:minVersion>
+				<em:maxVersion>3.2a1pre</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+		<em:targetApplication>
+			<Description>
+				<!-- SeaMonkey //-->
+				<em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
+				<em:minVersion>2.1a1pre</em:minVersion>
+				<em:maxVersion>2.1</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 </RDF>
