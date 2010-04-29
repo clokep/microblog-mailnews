@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var EXPORTED_SYMBOLS = ["dump", "inheritCurrentInterface"];
+
 function dump(aMessage) {
 	var consoleService = Components.classes["@mozilla.org/consoleservice;1"]
 									 .getService(Components.interfaces.nsIConsoleService);
@@ -54,82 +56,7 @@ function inheritCurrentInterface(self, super) {
 						return super[prop].apply(super,arguments); 
 					};
 				})(prop);
-			}
-			else
+			} else
 				self[prop] = super[prop];
 	}
 }
-
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
-var nsTwitterIncomingServer = {
-	// Implement nsIMsgIncomingServer and inherits from mailnews/base/util/nsMsgIncomingServer
-	//grab initial methods (nsIMsgIncomingServer)
-	inheritCurrentInterface(this, Components.interfaces.nsIMsgIncomingServer);
-}
-nsTwitterIncomingServer.prototype = {
-	name: "twitter",
-	chromePackageName: "twitterbird",
-	showPanel: function(server) {
-		// don't show the panel for news, rss, or local accounts
-		return (server.type != "nntp" && server.type != "rss" &&
-				server.type != "none");
-	},
-
-	QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
-	classDescription: "Twitter Incoming Server",
-	classID: Components.ID("{0454A9C6-CF19-11DE-907E-FEFD55D89593}"),
-	contractID: "@mozilla.org/messenger/server;1?twitter",
-
-	_xpcom_categories: [{category: "",
-						 entry: ""}]
-};
-
-var nsTwitterFolder = {
-	// Implements nsIMsgFolder and inherits from nsMsgDBFolder
-}
-
-var nsTwitterService = {
-	// Usually have their own interface, but they also implement nsIMsgMessageService
-}
-
-var nsITwitterUrl = {
-	// Implement nsIMsgMailNewsUrl, inherit from base/util/nsMsgMailNewsUrl, and implement their own protocol-specific interface
-	// Possibly unnecessary
-}
-
-var nsITwitterProtocol = {
-	// Implement nsIMsgProtocol, inherit from nsMsgProtocol, and implement their own protocol-specific interface
-	// This would implement a twitter library
-}
-
-dump("Here");
-
-function TwitterModule() {
-}
-TwitterModule.prototype = {
-	// Inherit from nsIMsgIncomingServer
-	//__proto__: Components.interfaces.nsIMsgIncomingServer.createInstance(Components.interfaces.nsIMsgIncomingServer).prototype,
-
-	name: "twitter",
-	chromePackageName: "twitterbird",
-	showPanel: function(server) {
-		// don't show the panel for news, rss, or local accounts
-		return (server.type != "nntp" && server.type != "rss" &&
-				server.type != "none");
-	},
-
-	QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIMsgAccountManagerExtension]),
-	classDescription: "Twitter Account Manager Extension Service",
-	classID: Components.ID("{C93E133E-C8DA-11DE-BD47-FED455D89593}"),
-	contractID: "@mozilla.org/accountmanager/extension;1?name=twitter",
-
-	_xpcom_categories: [{category: "mailnews-accountmanager-extensions",
-						 entry: "twitter account manager extension"}]
-};
-
-function NSGetModule(compMgr, fileSpec) {
-	return XPCOMUtils.generateModule([TwitterModule]);
-}
-
-dump("done");

@@ -27,13 +27,13 @@ const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-function wfService() {
+function twitterService() {
   this.wrappedJSObject = this;
   this._prefs = Cc['@mozilla.org/preferences-service;1']
                   .getService(Ci.nsIPrefService)
                   .getBranch("extensions.twitterbird.");
 }
-wfService.prototype = {
+twitterService.prototype = {
   classDescription: "Twitterbird service",
   contractID: ["@mozilla.org/messenger/protocol/info;1?type=twitter"],
   classID: Components.ID("{A4793C2C-4E7C-11DF-9266-163CE0D72085}"),
@@ -59,7 +59,7 @@ wfService.prototype = {
 };
 
 function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([wfService]);
+  return XPCOMUtils.generateModule([twitterService]);
 }
 XPCOMUtils.generateModule = function replaced_GM(componentsArray, postRegister,
                                                  preUnregister) {

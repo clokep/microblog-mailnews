@@ -26,21 +26,22 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
+//Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
+Cu.import("resource://twitterbird/JSExtendedUtils.jsm");
 
-function wfServer() {
+function twitterServer() {
   this.wrappedJSObject = this;
   JSExtendedUtils.makeCPPInherits(this,
     "@mozilla.org/messenger/jsincomingserver;1");
   XPCOMUtils.defineLazyGetter(this, "_db",
     function (server) {
-      Cu.import("resource://webfora/database.jsm");
+      Cu.import("resource://twitterbird/database.jsm");
       let path = this._inner.localPath;
       path.append("serverData.db");
       return DatabaseUtils.openDatabase(path);
     });
 }
-wfServer.prototype = {
+twitterServer.prototype = {
   classDescription: "Twitterbird incoming server",
   contractID: ["@mozilla.org/messenger/server;1?type=twitter"],
   classID: Components.ID("{F9F56914-4E7C-11DF-BA0C-483CE0D72085}"),
@@ -53,5 +54,5 @@ wfServer.prototype = {
 };
 
 function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([wfServer]);
+  return XPCOMUtils.generateModule([twitterServer]);
 }

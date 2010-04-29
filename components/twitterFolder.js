@@ -26,7 +26,8 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
+//Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
+Cu.import("resource://twitterbird/JSExtendedUtils.jsm");
 
 let atoms = {};
 let atomService = Cc["@mozilla.org/atom-service;1"]
@@ -55,18 +56,18 @@ function array2enum(arr) {
   };
 }
 
-function wfFolder() {
+function twitterFolder() {
   this.wrappedJSObject = this;
   JSExtendedUtils.makeCPPInherits(this,
     "@mozilla.org/messenger/jsmsgfolder;1");
 }
-wfFolder.prototype = {
+twitterFolder.prototype = {
   classDescription: "Web Forums folder",
-  contractID: "@mozilla.org/rdf/resource-factory;1?name=webforum",
-  classID: Components.ID("{207a7d55-ec83-4181-a8e7-c0b3128db70b}"),
+  contractID: "@mozilla.org/rdf/resource-factory;1?name=twitter",
+  classID: Components.ID("{6DA245EE-5341-11DF-95E1-7C10E0D72085}"),
   QueryInterface: JSExtendedUtils.generateQI([]),
   getIncomingServerType: function () {
-    return "webforum";
+    return "twitter";
   },
   getDatabase: function () {
     if (this._inner["#mDatabase"])
@@ -137,11 +138,11 @@ wfFolder.prototype = {
   }
 };
 
-function wfDatabase() {}
-wfDatabase.prototype = {
-  classDescription: "Web Forums database",
-  contractID: "@mozilla.org/nsMsgDatabase/msgDB-webforum",
-  classID: Components.ID("{7519e8a6-f5e4-4b05-8cae-f2f4ad0ebfee}"),
+function twitterDatabase() {}
+twitterDatabase.prototype = {
+  classDescription: "Twitter database",
+  contractID: "@mozilla.org/nsMsgDatabase/msgDB-twitter",
+  classID: Components.ID("{9CBB21FC-5341-11DF-A828-1F11E0D72085}"),
   _xpcom_factory: {
     createInstance: function (outer, iid) {
       if (outer)
@@ -152,5 +153,5 @@ wfDatabase.prototype = {
 };
 
 function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([wfFolder, wfDatabase]);
+  return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
 }
