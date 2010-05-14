@@ -26,33 +26,32 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-//Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
-Cu.import("resource://twitterbird/JSExtendedUtils.jsm");
+Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
 
 function twitterServer() {
-  this.wrappedJSObject = this;
-  JSExtendedUtils.makeCPPInherits(this,
-    "@mozilla.org/messenger/jsincomingserver;1");
-  XPCOMUtils.defineLazyGetter(this, "_db",
-    function (server) {
-      Cu.import("resource://twitterbird/database.jsm");
-      let path = this._inner.localPath;
-      path.append("serverData.db");
-      return DatabaseUtils.openDatabase(path);
-    });
+	this.wrappedJSObject = this;
+	JSExtendedUtils.makeCPPInherits(this,
+		"@mozilla.org/messenger/jsincomingserver;1");
+	/*XPCOMUtils.defineLazyGetter(this, "_db",
+		function (server) {
+			Cu.import("resource://twitterbird/database.jsm");
+			let path = this._inner.localPath;
+			path.append("timelines-db.json");
+			return DatabaseUtils.openDatabase(path);
+		});*/
 }
 twitterServer.prototype = {
-  classDescription: "Twitterbird incoming server",
-  contractID: ["@mozilla.org/messenger/server;1?type=twitter"],
-  classID: Components.ID("{F9F56914-4E7C-11DF-BA0C-483CE0D72085}"),
-  QueryInterface: JSExtendedUtils.generateQI([]),
+	classDescription: "Twitterbird incoming server",
+	contractID: ["@mozilla.org/messenger/server;1?type=twitter"],
+	classID: Components.ID("{F9F56914-4E7C-11DF-BA0C-483CE0D72085}"),
+	QueryInterface: JSExtendedUtils.generateQI([]),
 
-  get localStoreType() { return "twitter"; },
-  /*get serverURI() {
-    return this.localStoreType + ":[" + this.hostName + "]";
-  }*/
+	get localStoreType() { return "twitter"; },
+	/*get serverURI() {
+		return this.localStoreType + ":[" + this.hostName + "]";
+	}*/
 };
 
 function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([twitterServer]);
+	return XPCOMUtils.generateModule([twitterServer]);
 }

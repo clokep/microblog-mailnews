@@ -26,132 +26,136 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-//Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
-Cu.import("resource://twitterbird/JSExtendedUtils.jsm");
+Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
 
-let atoms = {};
+/*let atoms = {};
 let atomService = Cc["@mozilla.org/atom-service;1"]
-                    .getService(Ci.nsIAtomService);
+					.getService(Ci.nsIAtomService);
 function defineAtom(name) {
-  atoms.__defineGetter__(name, function () {
-      delete atoms[name];
-      return atoms[name] = atomService.getAtom(name);
-  });
+	atoms.__defineGetter__(name, function () {
+		delete atoms[name];
+		return atoms[name] = atomService.getAtom(name);
+	});
 }
 defineAtom("FolderLoaded");
+*/
 
 function array2enum(arr) {
-  return {
-    _position: 0,
-    _array: arr,
-    QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator]),
-    hasMoreElements: function () {
-      return this._position < this._array.length;
-    },
-    getNext: function () {
-      if (!this.hasMoreElements())
-        throw Cr.NS_ERROR_FAILURE;
-      return this._array[this._position++];
-    }
-  };
+	return {
+		_position: 0,
+		_array: arr,
+		QueryInterface: XPCOMUtils.generateQI([Ci.nsISimpleEnumerator]),
+		hasMoreElements: function () {
+			return this._position < this._array.length;
+		},
+		getNext: function () {
+			if (!this.hasMoreElements())
+				throw Cr.NS_ERROR_FAILURE;
+			return this._array[this._position++];
+		}
+	};
 }
 
 function twitterFolder() {
-  this.wrappedJSObject = this;
-  JSExtendedUtils.makeCPPInherits(this,
-    "@mozilla.org/messenger/jsmsgfolder;1");
+	//this.wrappedJSObject = this;
+	JSExtendedUtils.makeCPPInherits(this,
+		"@mozilla.org/messenger/jsmsgfolder;1");
 }
 twitterFolder.prototype = {
-  classDescription: "Web Forums folder",
-  contractID: "@mozilla.org/rdf/resource-factory;1?name=twitter",
-  classID: Components.ID("{6DA245EE-5341-11DF-95E1-7C10E0D72085}"),
-  QueryInterface: JSExtendedUtils.generateQI([]),
-  getIncomingServerType: function () {
-    return "twitter";
-  },
-  getDatabase: function () {
-    if (this._inner["#mDatabase"])
-      return this._inner["#mDatabase"];
-    let dbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
-                      .getService(Ci.nsIMsgDBService);
-    let db;
-    try {
-      db = dbService.openFolderDB(this._inner, false);
-    } catch (e) {
-      db = dbService.createNewDB(this._inner);
-    }
-    this._inner["#mDatabase"] = db;
-    return db;
-  },
-  getDBFolderInfoAndDB: function (folderInfo) {
-    let db = this.getDatabase();
-    folderInfo.value = db.dBFolderInfo;
-    return db;
-  },
-  updateFolder: function (loading) {
-    this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
-  },
-  get subFolders() {
-    if (this._folders)
-      return array2enum(this._folders);
+	classDescription: "Web Forums folder",
+	contractID: "@mozilla.org/rdf/resource-factory;1?name=twitter",
+	classID: Components.ID("{6DA245EE-5341-11DF-95E1-7C10E0D72085}"),
+	QueryInterface: JSExtendedUtils.generateQI([]),
+	getIncomingServerType: function () {
+		return "twitter";
+	},
+	/*getDatabase: function () {
+		if (this._inner["#mDatabase"])
+			return this._inner["#mDatabase"];
+		let dbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
+						  .getService(Ci.nsIMsgDBService);
+		let db;
+		try {
+			db = dbService.openFolderDB(this._inner, false);
+		} catch (e) {
+			db = dbService.createNewDB(this._inner);
+		}
+		this._inner["#mDatabase"] = db;
+		return db;
+	},
+	getDBFolderInfoAndDB: function (folderInfo) {
+		let db = this.getDatabase();
+		folderInfo.value = db.dBFolderInfo;
+		return db;
+	},
+	updateFolder: function (loading) {
+		this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
+	},*/
+	get subFolders() {
+		return array2enum(["Test 1", "Test 2", "Test 3"]);
+		if (this._folders)
+			return array2enum(this._folders);
 
-    this._inner.QueryInterface(Ci.nsIMsgFolder);
-    this._server = this._inner.server;
-    this.__defineGetter__("server", function () { return this._server; });
-    let serverDB = this._inner.server.wrappedJSObject._db;
-    // Uninitialized -> no subfolders
-    if (!serverDB.categories)
-      return array2enum(this._folders = []);
+		this._inner.QueryInterface(Ci.nsIMsgFolder);
+		this._server = this._inner.server;
+		this.__defineGetter__("server", function () { return this._server; });
+		let serverDB = this._inner.server.wrappedJSObject._db;
+		// Uninitialized -> no subfolders
+		if (!serverDB)
+			return array2enum(this._folders = []);
 
-    // First find our level
-    let level;
-    if (this._inner.isServer)
-      level = serverDB.categories
-    else if (this._inner.parent.isServer) {
-      for each (let cat in serverDB.categories)
-        if (cat.name == this._inner.name)
-          level = cat.forums;
-    } else {
-      return array2enum(this._folders = []);
-    }
+		// First find our level
+		let level;
+		if (this._inner.isServer)
+			level = serverDB;
+		else if (this._inner.parent.isServer) {
+			for each (let timeline in serverDB)
+				if (timeline.name == this._inner.name)
+					level = timeline.timelines;
+		} else {
+			return array2enum(this._folders = []);
+		}
 
-    let URI = this._inner.URI + '/';
-    let folders = [];
-    let RDF = Cc["@mozilla.org/rdf/rdf-service;1"].getService(Ci.nsIRDFService);
-    let netUtils = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsINetUtil);
-    for each(let sub in level) {
-      if (!sub.subscribed && !sub.forums)
-        continue;
-      let folder = RDF.GetResource(URI + netUtils.escapeString(sub.name,
-        Ci.nsINetUtil.ESCAPE_URL_PATH));
-      folder.QueryInterface(Ci.nsIMsgFolder);
-      folder.parent = this;
-      folders.push(folder);
-    }
-    this._folders = folders;
-    return array2enum(this._folders);
-  },
-
-  get noSelect() {
-    return !!(this._inner.parent && this._inner.parent.isServer);
-  }
+		let URI = this._inner.URI + '/';
+		let folders = [];
+		// Yes, we still use RDF
+		let RDF = Cc["@mozilla.org/rdf/rdf-service;1"].getService(Ci.nsIRDFService);
+		let netUtils = Cc["@mozilla.org/network/io-service;1"]
+						 .getService(Ci.nsINetUtil);
+		for each(let sub in level) {
+			if (!sub.subscribed && !sub.forums)
+				continue;
+			// Some URIs may contain spaces, etc. -> escape
+			let folder = RDF.GetResource(URI + netUtils.escapeString(sub.name,Ci.nsINetUtil.ESCAPE_URL_PATH));
+			folder.QueryInterface(Ci.nsIMsgFolder);
+			folder.parent = this;
+			folders.push(folder);
+		}
+		this._folders = folders;
+		return array2enum(this._folders);
+	},
+	/*get noSelect() {
+		return !!(this._inner.parent && this._inner.parent.isServer);
+	}*/
 };
 
+/*
 function twitterDatabase() {}
 twitterDatabase.prototype = {
-  classDescription: "Twitter database",
-  contractID: "@mozilla.org/nsMsgDatabase/msgDB-twitter",
-  classID: Components.ID("{9CBB21FC-5341-11DF-A828-1F11E0D72085}"),
-  _xpcom_factory: {
-    createInstance: function (outer, iid) {
-      if (outer)
-        throw Cr.NS_ERROR_NO_AGGREGATION;
-      return Cc["@mozilla.org/nsMsgDatabase/msgDB-default"].createInstance(iid);
-    }
-  }
+	classDescription: "Twitter database",
+	contractID: "@mozilla.org/nsMsgDatabase/msgDB-twitter",
+	classID: Components.ID("{9CBB21FC-5341-11DF-A828-1F11E0D72085}"),
+	_xpcom_factory: {
+		createInstance: function (outer, iid) {
+			if (outer)
+				throw Cr.NS_ERROR_NO_AGGREGATION;
+			return Cc["@mozilla.org/nsMsgDatabase/msgDB-default"].createInstance(iid);
+		}
+	}
 };
+*/
 
 function NSGetModule(compMgr, fileSpec) {
-  return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
+	//return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
+	return XPCOMUtils.generateModule([twitterFolder]);
 }
