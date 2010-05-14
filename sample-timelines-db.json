@@ -1,0 +1,56 @@
+[
+	{
+		"name" : "Home",
+		"resource" : "statuses/home_timeline"
+	},
+	{
+		"name" : "Replies",
+		"resource" : "statuses/mentions"
+	},
+	{
+		"name" : "Directed Messages",
+		"timelines" : [
+			{
+				"name" : "Inbox",
+				"resource" : "direct_messages"
+			},
+			{
+				"name" : "Sent",
+				"resource" : "direct_messages/sent"
+			}
+		],
+	},
+	{
+		"name" : "Favorites",
+		"resource" : "favorites"
+	},
+	{
+		"name" : "Retweets",
+		"timelines" : [
+			{
+				"name" : "Retweets by Others",
+				"resource" : "statuses/retweeted_to_me"
+			},
+			{
+				"name" : "Retweets by You",
+				"resource" : "statuses/retweeted_by_me"
+			},
+			{
+				"name" : "Your Tweets, Retweeted",
+				"resource" : "statuses/retweets_of_me"
+			}
+		],
+	},
+	{
+		"name" : "Lists",
+		"timelines" : []
+	},
+	{
+		"name" : "Trends",
+		"timelines" : []
+	},
+	{
+		"name" : "Saved Searches",
+		"timelines" : []
+	}
+]

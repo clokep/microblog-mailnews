@@ -28,7 +28,7 @@ const Cr = Components.results;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
 
-/*let atoms = {};
+let atoms = {};
 let atomService = Cc["@mozilla.org/atom-service;1"]
 					.getService(Ci.nsIAtomService);
 function defineAtom(name) {
@@ -38,7 +38,6 @@ function defineAtom(name) {
 	});
 }
 defineAtom("FolderLoaded");
-*/
 
 function array2enum(arr) {
 	return {
@@ -57,7 +56,7 @@ function array2enum(arr) {
 }
 
 function twitterFolder() {
-	//this.wrappedJSObject = this;
+	this.wrappedJSObject = this;
 	JSExtendedUtils.makeCPPInherits(this,
 		"@mozilla.org/messenger/jsmsgfolder;1");
 }
@@ -69,7 +68,7 @@ twitterFolder.prototype = {
 	getIncomingServerType: function () {
 		return "twitter";
 	},
-	/*getDatabase: function () {
+	getDatabase: function () {
 		if (this._inner["#mDatabase"])
 			return this._inner["#mDatabase"];
 		let dbService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
@@ -90,9 +89,8 @@ twitterFolder.prototype = {
 	},
 	updateFolder: function (loading) {
 		this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
-	},*/
+	},
 	get subFolders() {
-		return array2enum(["Test 1", "Test 2", "Test 3"]);
 		if (this._folders)
 			return array2enum(this._folders);
 
@@ -123,7 +121,7 @@ twitterFolder.prototype = {
 		let netUtils = Cc["@mozilla.org/network/io-service;1"]
 						 .getService(Ci.nsINetUtil);
 		for each(let sub in level) {
-			if (!sub.subscribed && !sub.forums)
+			if (sub.timelines) // If a category (not a folder)
 				continue;
 			// Some URIs may contain spaces, etc. -> escape
 			let folder = RDF.GetResource(URI + netUtils.escapeString(sub.name,Ci.nsINetUtil.ESCAPE_URL_PATH));
@@ -134,12 +132,11 @@ twitterFolder.prototype = {
 		this._folders = folders;
 		return array2enum(this._folders);
 	},
-	/*get noSelect() {
+	get noSelect() {
 		return !!(this._inner.parent && this._inner.parent.isServer);
-	}*/
+	}
 };
 
-/*
 function twitterDatabase() {}
 twitterDatabase.prototype = {
 	classDescription: "Twitter database",
@@ -153,9 +150,7 @@ twitterDatabase.prototype = {
 		}
 	}
 };
-*/
 
 function NSGetModule(compMgr, fileSpec) {
-	//return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
-	return XPCOMUtils.generateModule([twitterFolder]);
+	return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
 }

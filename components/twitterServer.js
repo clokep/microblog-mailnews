@@ -31,14 +31,14 @@ Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
 function twitterServer() {
 	this.wrappedJSObject = this;
 	JSExtendedUtils.makeCPPInherits(this,
-		"@mozilla.org/messenger/jsincomingserver;1");
-	/*XPCOMUtils.defineLazyGetter(this, "_db",
+									"@mozilla.org/messenger/jsincomingserver;1");
+	XPCOMUtils.defineLazyGetter(this, "_db",
 		function (server) {
 			Cu.import("resource://twitterbird/database.jsm");
 			let path = this._inner.localPath;
 			path.append("timelines-db.json");
 			return DatabaseUtils.openDatabase(path);
-		});*/
+		});
 }
 twitterServer.prototype = {
 	classDescription: "Twitterbird incoming server",
