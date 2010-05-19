@@ -42,7 +42,7 @@ if (typeof JSON == "undefined")
 	Components.utils.import("resource://gre/modules/JSON.jsm");
 
 /* CONSTRUCTOR */
-function OAuthTwitterHelper(aServiceStr, mFormat) {
+function OAuthTwitterHelper(aServiceStr, aFormat) {
 	this.mServiceName = aServiceStr;
 	switch (aServiceStr) {
 		case "twitter":
@@ -55,7 +55,7 @@ function OAuthTwitterHelper(aServiceStr, mFormat) {
 			throw("OAuthTwitterHelper: bad service string");
 			break;
 	}
-	this.mFormat = mFormat;
+	this.mFormat = aFormat;
 
 	this.statuses._self = this;
 	this.users._self = this;
@@ -132,7 +132,7 @@ OAuthTwitterHelper.prototype.help				= { };
 /* STATUSES REQUESTS */
 OAuthTwitterHelper.prototype.statuses.friends_timeline =
 function(aSince, aSinceId, aCount, aPage) {
-	var feedURL = this._self.mBaseURL + "statuses/friends_timeline." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/friends_timeline." + this._self.mFormat;
 
 	var params = this._self._addParam([], aSince, "since");
 	params = this._self._addParam(params, aSinceId, "since_id");
@@ -146,9 +146,9 @@ OAuthTwitterHelper.prototype.statuses.user_timeline =
 function(aUserId, aSince, aSinceId, aCount, aPage) {
 	var feedURL;
 	if (aUserId)
-		feedURL = this._self.mBaseURL + "statuses/user_timeline/" + aUserId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/user_timeline/" + aUserId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "statuses/user_timeline." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/user_timeline." + this._self.mFormat;
 
 	var params = this._self._addParam([], aSince, "since");
 	params = this._self._addParam(params, aSinceId, "since_id");
@@ -162,9 +162,9 @@ OAuthTwitterHelper.prototype.statuses.friends =
 function(aUserId, aPage) {
 	var feedURL;
 	if (aUserId)
-		feedURL = this._self.mBaseURL + "statuses/friends/" + aUserId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/friends/" + aUserId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "statuses/friends." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/friends." + this._self.mFormat;
 
 	var params = this._self._addParam([], aPage, "page");
 
@@ -175,9 +175,9 @@ OAuthTwitterHelper.prototype.statuses.followers =
 function(aUserId, aPage) {
 	var feedURL;
 	if (aUserId)
-		feedURL = this._self.mBaseURL + "statuses/followers/" + aUserId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/followers/" + aUserId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "statuses/followers." + mFormat;
+		feedURL = this._self.mBaseURL + "statuses/followers." + this._self.mFormat;
 
 	var params = this._self._addParam([], aPage, "page");
 
@@ -191,7 +191,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "statuses/show." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/show." + this._self.mFormat;
 
 	var params = [["id", aId]];
 
@@ -200,7 +200,7 @@ function(aId) {
 
 OAuthTwitterHelper.prototype.statuses.replies =
 function(aSince, aSinceId, aPage) {
-	var feedURL = this._self.mBaseURL + "statuses/replies." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/replies." + this._self.mFormat;
 
 	var params = this._self._addParam([], aSince, "since");
 	params = this._self._addParam(params, aSinceId, "since_id");
@@ -216,16 +216,16 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "statuses/destroy/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/destroy/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
 
 OAuthTwitterHelper.prototype.statuses.public_timeline =
 function() {
-	var feedURL = this._self.mBaseURL + "statuses/public_timeline." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/public_timeline." + this._self.mFormat;
 
-	this._self._createOAuthMessage("GET", feedURL, []);
+	return this._self._createOAuthMessage("GET", feedURL, []);
 }
 
 OAuthTwitterHelper.prototype.statuses.update =
@@ -235,7 +235,7 @@ function(aText, aInReplyToStatusId, aSource) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "statuses/update." + mFormat;
+	var feedURL = this._self.mBaseURL + "statuses/update." + this._self.mFormat;
 	
 	var params = [["status", escape(aText)]];
 	feedURL = this._self._addParam(params, aInReplyToStatusId, "in_reply_to_status_id");
@@ -255,9 +255,9 @@ function(aUserId, aEmail) {
 
 	var feedURL, params;
 	if (!aEmail)
-		feedURL = this._self.mBaseURL + "users/show/" + aUserId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "users/show/" + aUserId + "." + this._self.mFormat;
 	else {
-		feedURL = this._self.mBaseURL + "users/show." + mFormat;
+		feedURL = this._self.mBaseURL + "users/show." + this._self.mFormat;
 		params = this._self._addParam([], aEmail, "email");
 	}
 
@@ -267,7 +267,7 @@ function(aUserId, aEmail) {
 /* DIRECT_MESSAGES REQUESTS */
 OAuthTwitterHelper.prototype.direct_messages.inbox =
 function(aSince, aSinceId, aPage) {
-	var feedURL = this._self.mBaseURL + "direct_messages." + mFormat;
+	var feedURL = this._self.mBaseURL + "direct_messages." + this._self.mFormat;
 
 	var params = this._self._addParam([], aSince, "since");
 	params = this._self._addParam(params, aSinceId, "since_id");
@@ -278,7 +278,7 @@ function(aSince, aSinceId, aPage) {
 
 OAuthTwitterHelper.prototype.direct_messages.sent =
 function(aSince, aSinceId, aPage) {
-	var feedURL = this._self.mBaseURL + "direct_messages/sent." + mFormat;
+	var feedURL = this._self.mBaseURL + "direct_messages/sent." + this._self.mFormat;
 
 	var params = this._self._addParam([], aSince, "since");
 	params = this._self._addParam(params, aSinceId, "since_id");
@@ -297,7 +297,7 @@ function(aUser, aText) {
 		this._self._localizedError(this._self.mServiceName, "EmptyDMText");
 		return;
 	}
-	var feedURL = this._self.mBaseURL + "direct_messages/new." + mFormat;
+	var feedURL = this._self.mBaseURL + "direct_messages/new." + this._self.mFormat;
 
 	var params = this._self._addParam([], aUser, "user");
 	params = this._self._addParam(params, aText, "text");
@@ -312,7 +312,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "direct_messages/destroy/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "direct_messages/destroy/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -325,7 +325,7 @@ function(aId, aFollow) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "friendships/create/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "friendships/create/" + aId + "." + this._self.mFormat;
 
 	var params = this._self._addParam([], aFollow, "follow");
 
@@ -339,7 +339,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "friendships/destroy/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "friendships/destroy/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -351,7 +351,7 @@ function(aUserA, aUserB) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "friendships/exists." + mFormat;
+	var feedURL = this._self.mBaseURL + "friendships/exists." + this._self.mFormat;
 
 	var params = this._self._addParam([], aUserA, "user_a");
 	params = this._self._addParam(params, aUserB, "user_b");
@@ -364,9 +364,9 @@ OAuthTwitterHelper.prototype.friends.ids =
 function(aId) {
 	var feedURL;
 	if (aId)
-		feedURL = this._self.mBaseURL + "friends/ids/" + aId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "friends/ids/" + aId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "friends/ids." + mFormat;
+		feedURL = this._self.mBaseURL + "friends/ids." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("GET", feedURL, []);
 }
@@ -376,9 +376,9 @@ OAuthTwitterHelper.prototype.followers.ids =
 function(aId) {
 	var feedURL;
 	if (aId)
-		feedURL = this._self.mBaseURL + "followers/ids/" + aId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "followers/ids/" + aId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "followers/ids." + mFormat;
+		feedURL = this._self.mBaseURL + "followers/ids." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("GET", feedURL, []);
 }
@@ -386,14 +386,14 @@ function(aId) {
 /* ACCOUNT REQUESTS */
 OAuthTwitterHelper.prototype.account.verify_credentials =
 function() {
-	var feedURL = this._self.mBaseURL + "account/verify_credentials." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/verify_credentials." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("GET", feedURL, []);
 }
 
 OAuthTwitterHelper.prototype.account.end_session =
 function() {
-	var feedURL = this._self.mBaseURL + "account/end_session." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/end_session." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -404,7 +404,7 @@ function(aDevice) {
 		this._self._localizedError(this._self.mServiceName, "WrongDevice");
 		return;
 	}
-	var feedURL = this._self.mBaseURL + "account/update_delivery_device." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/update_delivery_device." + this._self.mFormat;
 
 	var params = this._self._addParam([], aDevice, "device");
 
@@ -419,7 +419,7 @@ function(aBackgroundColor, aTextColor, aLinkColor,
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "account/update_profile_colors." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/update_profile_colors." + this._self.mFormat;
 
 	var params = this._self._addParam([], aBackgroundColor, "profile_background_color");
 	params = this._self._addParam(params, aTextColor, "profile_text_color");
@@ -432,14 +432,14 @@ function(aBackgroundColor, aTextColor, aLinkColor,
 
 OAuthTwitterHelper.prototype.account.rate_limit_status =
 function() {
-	var feedURL = this._self.mBaseURL + "account/rate_limit_status." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/rate_limit_status." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("GET", feedURL, []);
 }
 
 OAuthTwitterHelper.prototype.account.update_profile =
 function(aName, aEmail, aUrl, aLocation, aDescription) {
-	var feedURL = this._self.mBaseURL + "account/update_profile." + mFormat;
+	var feedURL = this._self.mBaseURL + "account/update_profile." + this._self.mFormat;
 
 	var params = this._self._addParam([], aName, "name");
 	params = this._self._addParam(params, aEmail, "email");
@@ -455,9 +455,9 @@ OAuthTwitterHelper.prototype.favorites.favorites =
 function(aUserId, aPage) {
 	var feedURL;
 	if (aUserId)
-		feedURL = this._self.mBaseURL + "favorites/" + aUserId + "." + mFormat;
+		feedURL = this._self.mBaseURL + "favorites/" + aUserId + "." + this._self.mFormat;
 	else
-		feedURL = this._self.mBaseURL + "favorites." + mFormat;
+		feedURL = this._self.mBaseURL + "favorites." + this._self.mFormat;
 
 	var params = this._self._addParam([], aPage, "page");
 
@@ -471,7 +471,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "favorites/create/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "favorites/create/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -483,7 +483,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "favorites/destroy/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "favorites/destroy/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -496,7 +496,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "notifications/follow/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "notifications/follow/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -508,7 +508,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "notifications/leave/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "notifications/leave/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -521,7 +521,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "blocks/create/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "blocks/create/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -533,7 +533,7 @@ function(aId) {
 		return;
 	}
 
-	var feedURL = this._self.mBaseURL + "blocks/destroy/" + aId + "." + mFormat;
+	var feedURL = this._self.mBaseURL + "blocks/destroy/" + aId + "." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("POST", feedURL, []);
 }
@@ -541,7 +541,7 @@ function(aId) {
 /* HELP REQUESTS */
 OAuthTwitterHelper.prototype.help.test =
 function() {
-	var feedURL = this._self.mBaseURL + "help/test." + mFormat;
+	var feedURL = this._self.mBaseURL + "help/test." + this._self.mFormat;
 
 	return this._self._createOAuthMessage("GET", feedURL, []);
 }

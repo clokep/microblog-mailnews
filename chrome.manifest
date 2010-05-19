@@ -1,3 +1,5 @@
 content		twitterbird												chrome/content/
 locale		twitterbird		en-US									chrome/locale/en-US/
 resource	twitterbird												modules/
+
+overlay		chrome://messenger/content/messenger.xul				chrome://twitterbird/content/messenger.xul

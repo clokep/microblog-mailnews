@@ -1,42 +1,56 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- ***** BEGIN LICENSE BLOCK *****
-   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
-   -
-   - The contents of this file are subject to the Mozilla Public License Version
-   - 1.1 (the "License"); you may not use this file except in compliance with
-   - the License. You may obtain a copy of the License at
-   - http://www.mozilla.org/MPL/
-   -
-   - Software distributed under the License is distributed on an "AS IS" basis,
-   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-   - for the specific language governing rights and limitations under the
-   - License.
-   -
-   - The Original Code is Twitterbird.
-   -
-   - The Initial Developer of the Original Code is
-   - Patrick Cloke.
-   - Portions created by the Initial Developer are Copyright (C) 2009
-   - the Initial Developer. All Rights Reserved.
-   -
-   - Contributor(s):
-   -
-   - Alternatively, the contents of this file may be used under the terms of
-   - either the GNU General Public License Version 2 or later (the "GPL"), or
-   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-   - in which case the provisions of the GPL or the LGPL are applicable instead
-   - of those above. If you wish to allow use of your version of this file only
-   - under the terms of either the GPL or the LGPL, and not to allow others to
-   - use your version of this file under the terms of the MPL, indicate your
-   - decision by deleting the provisions above and replace them with the notice
-   - and other provisions required by the LGPL or the GPL. If you do not delete
-   - the provisions above, a recipient may use your version of this file under
-   - the terms of any one of the MPL, the GPL or the LGPL.
-   -
-   - ***** END LICENSE BLOCK ***** -->
-<!--<!DOCTYPE overlay SYSTEM "chrome://test/locale/messenger.dtd">//-->
-<!DOCTYPE overlay>
-<overlay id="twitterbird"
-		 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <script type="application/x-javascript" src="chrome://twitterbird/content/messenger.js"/>
+<?xml version="1.0"?>
+<!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN" "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<overlay id="twitterbird-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <script type="application/x-javascript">
+    <![CDATA[
+    function test_twitterbird() {
+		Components.utils.import("resource://oauthorizer/modules/oauthconsumer.js");
+		Components.utils.import("resource://twitterbird/twitterbirdUtils.jsm");
+		Components.utils.import("resource://twitterbird/oauthTwitterHelper.jsm");
+
+		service = null; // Global
+
+		function authCallback(svc) {
+			dump("Access token:\t" + svc.token + "\n  Secret token:\t" + svc.tokenSecret + "\n");
+			service = svc;
+
+			var message = oatwh.statuses.public_timeline();
+			dump(JSON.stringify(message)); // Verify the message is legit
+			//OAuthConsumer.call(service, message, requestCallback); // Make the request
+
+			var message = oatwh.statuses.friends_timeline();
+			dump(JSON.stringify(message)); // Verify the message is legit
+			//OAuthConsumer.call(service, message, requestCallback); // Make the request
+		}
+		function requestCallback(request) {
+			// Dump a lot of info about the request
+			dump("xmlHTTPRequest object: " + request + "\nStatus: " + request.status + "Response: " + request.responseText + "Response: " + JSON.stringify(request.responseText));
+			//JSON.parse(request.responseText);
+		}
+
+		var provider = 'twitter',
+			key = "ogIRQvBCXFYgzqhO33l6Bw",
+			secret = "llzULAvuEVJZg1OC5q2kc55LFoNXphvCqVRTWyWZl28",
+			params = null,
+			completionURI = "http://oauthcallback.local/access.xhtml";
+
+		var oatwh = new OAuthTwitterHelper('twitter', 'json'); // Create an OAuthTwitterHelper
+
+		OAuthConsumer.authorize(provider, key, secret, completionURI, authCallback, params); // Authorize
+		
+		while (service == null);
+		dump(JSON.stringify(service)); // Verify we have a real service object
+
+        alert("Done (finally)!");
+    }
+    ]]>
+    </script>
+
+    <menupopup id="taskPopup">
+        <menuitem id="test_twitterbird" label="Test Twitterbird"
+                  oncommand='test_twitterbird();'/>
+    </menupopup>
 </overlay>
