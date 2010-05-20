@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <!-- ***** BEGIN LICENSE BLOCK *****
  - Version: MPL 1.1/GPL 2.0/LGPL 2.1
  -
@@ -74,4 +73,14 @@
 				<em:maxVersion>2.1</em:maxVersion>
 			</Description>
 		</em:targetApplication>
+
+		<!-- Requires //-->
+		<em:requires>
+			<Description>
+				<!-- OAuthorizer -->
+				<em:id>oauthorizer@mozillamessaging.com</em:id>
+				<em:minVersion>0.0.1</em:minVersion>
+				<em:maxVersion>0.0.1</em:maxVersion>
+			</Description>
+		</em:requires>
 </RDF>
