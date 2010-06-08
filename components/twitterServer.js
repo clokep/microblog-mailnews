@@ -48,11 +48,6 @@ twitterServer.prototype = {
 	classID: Components.ID("{F9F56914-4E7C-11DF-BA0C-483CE0D72085}"),
 	QueryInterface: JSExtendedUtils.generateQI([]),
 
-	get localStoreType() { return "twitter"; },
-	/*get serverURI() {
-		return this.localStoreType + ":[" + this.hostName + "]";
-	},*/
-
 	/* Queued tasks to run on the next open protocol */
 	_queuedTasks: [],
 	_protocols: [],
@@ -76,6 +71,11 @@ twitterServer.prototype = {
 			return this._queuedTasks.shift();
 		return null;
 	},
+
+	get localStoreType() { return "twitter"; },
+	/*get serverURI() {
+		return this.localStoreType + ":[" + this.hostName + "]";
+	}*/
 };
 
 function NSGetModule(compMgr, fileSpec) {

@@ -87,7 +87,9 @@ twitterFolder.prototype = {
 		folderInfo.value = db.dBFolderInfo;
 		return db;
 	},
-	updateFolder: function (loading) {
+	updateFolder: function (msgwindow) {
+		let real = this;
+		twitterProtocol.getNewMessages(this, msgwindow);
 		this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
 	},
 	get subFolders() {
