@@ -28,7 +28,9 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Components.utils.import("resource://gre/modules/IOUtils.js");
-Components.utils.import("resource://webfora/database.jsm");
+Components.utils.import("resource://twitterbird/database.jsm");
+Components.utils.import("resource://oauthorizer/modules/oauthconsumer.js");
+Components.utils.import("resource://twitterbird/oauthTwitterHelper.jsm");
 
 const kMaxLoads = 4;
 
@@ -100,7 +102,7 @@ twitterProtocol.prototype = {
 	 * The current folder we are processing.
 	 */
 	_folder: null,
-	_loadThreadList: function (document, msgwindow) {
+	_parseReturn: function (api_return) { // This should receive a Twitter API return
 		let threads = document.querySelectorAll("ul.topiclist > li.row > dl");
 		let lastSeen = true;
 		for (let i = 0; i < threads.length; i++) {
@@ -122,11 +124,11 @@ twitterProtocol.prototype = {
 			let amount = this._auxDB.threads[title.href].replies;
 			let diff = replies - amount;
 			this._auxDB.threads[title.href].replies += diff;
-			this.loadUrl(title.href, this._loadThread, null, amount + 1, diff);
+			this.loadMessage(title.href, this._loadThread, null, amount + 1, diff);
 		}
 		let nextpage = document.querySelector("fieldset.display-options > a");
 		if (!lastSeen && nextPage) {
-			this.loadUrl(nextpage.href, this._loadThreadList, msgwindow);
+			this.loadMessage(nextpage.href, this._loadThreadList, msgwindow);
 		}
 	},
 	_loadThread: function (document, firstMsgId, start, diff) {
@@ -140,7 +142,7 @@ twitterProtocol.prototype = {
 			if (!firstMsgId) {
 				firstMsgId = posts[0].id.substring(1) + "@" + document.documentURI;
 			}
-			this.loadUrl(next.href, this._loadThread, firstMsgId,
+			this.loadMessage(next.href, this._loadThread, firstMsgId,
 				start - posts.length, diff);
 			return;
 		}
@@ -177,33 +179,35 @@ twitterProtocol.prototype = {
 			this.loadUrl(next.href, this._loadThread, firstMsgId, 0,
 				diff - (posts.length - start));
 		}
-	},
-	_parseTitleBlock: function (block) {
-		let uri = block.firstElementChild.href;
-		let text = block.textContent;
-		text = text.substring(text.indexOf("by ") + 3);
-		let onindex = text.indexOf(" on ");
-		let author = text.substring(0, onindex).trim();
-		let date = new Date (text.substring(onindex + 4));
-		return [uri, author, date];
-	},
+	}
 };
-twitterProtocol.getNewMessages = function prot_getMessages(folder, msgwindow) {
-  folder.server.wrappedJSObject.runTask(new NewMessageTask(folder, msgwindow));
+twitterProtocol.getNewMessages = function prot_getMessages(folder) {
+  folder.server.wrappedJSObject.runTask(new NewMessageTask(folder));
 }
+
+let oauthInfo = {
+	_provider = 'twitter', // Configurable via pref
+	_key = "ogIRQvBCXFYgzqhO33l6Bw", // Mine from Twitter
+	_secret = "llzULAvuEVJZg1OC5q2kc55LFoNXphvCqVRTWyWZl28", // Mine from Twitter
+	_params = null, // Does this need to be in here? Its returned later
+	_completionURI = "http://oauthcallback.local/access.xhtml", // Nice fake URL to keep OAuth happy
+	_responseType = 'json', // Everything is based on json, could use something else (and rewrite a lot of code)
+};
 
 // An object that represents a message to be run
 function MessageRunner(url, protocol) {
 	this._url = url;
 	this._protocol = protocol;
+	this._oatwh = new OAuthTwitterHelper(oauthInfo._provider, oauthInfo._responseType); // Create a new OAuthTwitterHelper
 }
 MessageRunner.prototype = {
 	runMessage: function () {
 		let real = this;
-		asyncLoadDom(this._url, function (dom) {
+		/*asyncLoadDom(this._url, function (dom) {
 			real.onUrlLoad(dom);
 			real._protocol.onMessageLoaded(real._url);
-		});
+		});*/
+		OAuthConsumer.authorize(oauthInfo.provider, oauthInfo.key, oauthInfo.secret, oauthInfo.completionURI, real._protocol.onOAuth, oauthInfo.params); // Authorize
 	},
 	onMessageLoad: function (dom) {}
 };
@@ -213,9 +217,8 @@ let auxDBSchema = {
 	threads: {},
 };
 
-function NewMessageTask(folder, msgwindow) {
+function NewMessageTask(folder) {
 	this._folder = folder;
-	this._wnd = msgwindow;
 }
 NewMessageTask.prototype = {
 	runTask: function (protocol) {
@@ -225,13 +228,13 @@ NewMessageTask.prototype = {
 		if (folder._dbNode.url === undefined)
 			return;
 		try {
-		protocol._auxDB = DatabaseUtils.openDatabase(folder._auxDatabasePath);
-		if (!("_schemaVersion" in protocol._auxDB))
-			protocol._auxDB = auxDBSchema;
+			protocol._auxDB = DatabaseUtils.openDatabase(folder._auxDatabasePath);
+			if (!("_schemaVersion" in protocol._auxDB))
+				protocol._auxDB = auxDBSchema;
 		} catch (e) {
 			dump(e + '\n');
 		}
-		protocol.loadUrl(folder._dbNode.url, protocol._loadThreadList, this._wnd);
+		protocol.loadMessage(folder._dbNode.url, protocol._parseReturn);
 	},
 	onTaskCompleted: function (protocol) {
 		DatabaseUtils.saveDatabase(protocol._auxDB, this._folder._auxDatabasePath);

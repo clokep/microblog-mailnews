@@ -61,7 +61,7 @@ function twitterFolder() {
 		"@mozilla.org/messenger/jsmsgfolder;1");
 }
 twitterFolder.prototype = {
-	classDescription: "Web Forums folder",
+	classDescription: "Twitterbird folder",
 	contractID: "@mozilla.org/rdf/resource-factory;1?name=twitter",
 	classID: Components.ID("{6DA245EE-5341-11DF-95E1-7C10E0D72085}"),
 	QueryInterface: JSExtendedUtils.generateQI([]),
@@ -87,9 +87,9 @@ twitterFolder.prototype = {
 		folderInfo.value = db.dBFolderInfo;
 		return db;
 	},
-	updateFolder: function (msgwindow) {
+	updateFolder: function () {
 		let real = this;
-		twitterProtocol.getNewMessages(this, msgwindow);
+		twitterProtocol.getNewMessages(this);
 		this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
 	},
 	get subFolders() {
