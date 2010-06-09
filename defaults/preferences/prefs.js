@@ -1,2 +1,2 @@
-pref("extensions.twitterbird.rootDir", "[ProfD]Twitter");
-pref("extensions.twitterbird@patrick.cloke.description", "chrome://twitterbird/locale/overlay.properties");
+pref("extensions.microblog-mailnews.rootDir", "[ProfD]microblog");
+pref("extensions.microblog-mailnews@patrick.cloke.description", "chrome://microblog-mailnews/locale/overlay.properties");
