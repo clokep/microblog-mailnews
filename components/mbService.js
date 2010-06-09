@@ -27,22 +27,22 @@ const Cr = Components.results;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-function twitterService() {
+function mbService() {
 	this.wrappedJSObject = this;
 	this._prefs = Cc['@mozilla.org/preferences-service;1']
 					.getService(Ci.nsIPrefService)
-					.getBranch("extensions.twitterbird.");
+					.getBranch("extensions.microblog-mailnews.");
 }
-twitterService.prototype = {
-	classDescription: "Twitterbird service",
-	contractID: ["@mozilla.org/messenger/protocol/info;1?type=twitter"],
+mbService.prototype = {
+	classDescription: "microblog-mailnews service",
+	contractID: ["@mozilla.org/messenger/protocol/info;1?type=microblog"],
 	classID: Components.ID("{A4793C2C-4E7C-11DF-9266-163CE0D72085}"),
 	QueryInterface: XPCOMUtils.generateQI([Ci.nsIMsgProtocolInfo]),
 
 	// nsIMsgProtocolInfo implementation -- See https://developer.mozilla.org/en/nsIMsgProtocolInfo
 	// Used by the account wizard and account manager
 	get defaultLocalPath() { // The default path under which all server data for this account type will be stored.
-		let pref = this._prefs.getComplexValue("rootDir", Ci.nsIRelativeFilePref); // Preference looks like [ProfD]Twitter
+		let pref = this._prefs.getComplexValue("rootDir", Ci.nsIRelativeFilePref); // Preference looks like [ProfD]microblog
 		return pref.file;
 	},
 	get serverIID() { return Ci.nsIMsgIncomingServer; }, // The IID of the server-specific interface, used during account creation. Read only.
@@ -59,7 +59,7 @@ twitterService.prototype = {
 };
 
 function NSGetModule(compMgr, fileSpec) {
-	return XPCOMUtils.generateModule([twitterService]);
+	return XPCOMUtils.generateModule([mbService]);
 }
 XPCOMUtils.generateModule = function replaced_GM(componentsArray, postRegister,
 																								 preUnregister) {

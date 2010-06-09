@@ -30,21 +30,21 @@ Cu.import("resource://gre/modules/JSExtendedUtils.jsm");
 
 const kMaxProtocols = 2;
 
-function twitterServer() {
+function mbServer() {
 	this.wrappedJSObject = this;
 	JSExtendedUtils.makeCPPInherits(this,
 									"@mozilla.org/messenger/jsincomingserver;1");
 	XPCOMUtils.defineLazyGetter(this, "_db",
 		function (server) {
-			Cu.import("resource://twitterbird/database.jsm");
+			Cu.import("resource://microblog-mailnews/database.jsm");
 			let path = this._inner.localPath;
 			path.append("timelines-db.json");
 			return DatabaseUtils.openDatabase(path);
 		});
 }
-twitterServer.prototype = {
-	classDescription: "Twitterbird incoming server",
-	contractID: ["@mozilla.org/messenger/server;1?type=twitter"],
+mbServer.prototype = {
+	classDescription: "microblog-mailnews incoming server",
+	contractID: ["@mozilla.org/messenger/server;1?type=microblog"],
 	classID: Components.ID("{F9F56914-4E7C-11DF-BA0C-483CE0D72085}"),
 	QueryInterface: JSExtendedUtils.generateQI([]),
 
@@ -53,7 +53,7 @@ twitterServer.prototype = {
 	_protocols: [],
 	runTask: function (task) {
 		if (this._protocols.length < kMaxProtocols) {
-			let protocol = new twitterProtocol(this);
+			let protocol = new mbProtocol(this);
 			protocol.loadTask(task);
 			this._protocols.push(protocol);
 			return;
@@ -72,12 +72,12 @@ twitterServer.prototype = {
 		return null;
 	},
 
-	get localStoreType() { return "twitter"; },
+	get localStoreType() { return "microblog"; },
 	/*get serverURI() {
 		return this.localStoreType + ":[" + this.hostName + "]";
 	}*/
 };
 
 function NSGetModule(compMgr, fileSpec) {
-	return XPCOMUtils.generateModule([twitterServer]);
+	return XPCOMUtils.generateModule([mbServer]);
 }

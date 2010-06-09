@@ -1,5 +1,5 @@
-content		twitterbird												chrome/content/
-locale		twitterbird		en-US									chrome/locale/en-US/
-resource	twitterbird												modules/
+content		microblog-mailnews										chrome/content/
+locale		microblog-mailnews		en-US							chrome/locale/en-US/
+resource	microblog-mailnews										modules/
 
-overlay		chrome://messenger/content/messenger.xul				chrome://twitterbird/content/messenger.xul
+overlay		chrome://messenger/content/messenger.xul				chrome://microblog-mailnews/content/messenger.xul

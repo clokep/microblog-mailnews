@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = ["twitterProtocol"];
+var EXPORTED_SYMBOLS = ["mbProtocol"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -28,9 +28,9 @@ const Cu = Components.utils;
 const Cr = Components.results;
 
 Components.utils.import("resource://gre/modules/IOUtils.js");
-Components.utils.import("resource://twitterbird/database.jsm");
+Components.utils.import("resource://microblog-mailnews/database.jsm");
 Components.utils.import("resource://oauthorizer/modules/oauthconsumer.js");
-Components.utils.import("resource://twitterbird/oauthTwitterHelper.jsm");
+Components.utils.import("resource://microblog-mailnews/oauthmbHelper.jsm");
 
 const kMaxLoads = 4;
 
@@ -45,10 +45,10 @@ function defineAtom(name) {
 }
 defineAtom("FolderLoaded");
 
-function twitterProtocol(server) {
+function mbProtocol(server) {
 	this.server = server;
 }
-twitterProtocol.prototype = {
+mbProtocol.prototype = {
 	// Queued messages; first kMaxLoads are the currently running
 	_messages: [],
 	// The current task
@@ -102,7 +102,7 @@ twitterProtocol.prototype = {
 	 * The current folder we are processing.
 	 */
 	_folder: null,
-	_parseReturn: function (api_return) { // This should receive a Twitter API return
+	_parseReturn: function (api_return) { // This should receive a mb API return
 		let threads = document.querySelectorAll("ul.topiclist > li.row > dl");
 		let lastSeen = true;
 		for (let i = 0; i < threads.length; i++) {
@@ -181,14 +181,14 @@ twitterProtocol.prototype = {
 		}
 	}
 };
-twitterProtocol.getNewMessages = function prot_getMessages(folder) {
+mbProtocol.getNewMessages = function prot_getMessages(folder) {
   folder.server.wrappedJSObject.runTask(new NewMessageTask(folder));
 }
 
 let oauthInfo = {
 	_provider = 'twitter', // Configurable via pref
-	_key = "ogIRQvBCXFYgzqhO33l6Bw", // Mine from Twitter
-	_secret = "llzULAvuEVJZg1OC5q2kc55LFoNXphvCqVRTWyWZl28", // Mine from Twitter
+	_key = "ogIRQvBCXFYgzqhO33l6Bw", // Mine from mb
+	_secret = "llzULAvuEVJZg1OC5q2kc55LFoNXphvCqVRTWyWZl28", // Mine from mb
 	_params = null, // Does this need to be in here? Its returned later
 	_completionURI = "http://oauthcallback.local/access.xhtml", // Nice fake URL to keep OAuth happy
 	_responseType = 'json', // Everything is based on json, could use something else (and rewrite a lot of code)
@@ -198,7 +198,7 @@ let oauthInfo = {
 function MessageRunner(url, protocol) {
 	this._url = url;
 	this._protocol = protocol;
-	this._oatwh = new OAuthTwitterHelper(oauthInfo._provider, oauthInfo._responseType); // Create a new OAuthTwitterHelper
+	this._oatwh = new OAuthmbHelper(oauthInfo._provider, oauthInfo._responseType); // Create a new OAuthmbHelper
 }
 MessageRunner.prototype = {
 	runMessage: function () {

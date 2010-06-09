@@ -41,20 +41,20 @@
 	
 	<Description about="urn:mozilla:install-manifest">
 		<!-- Extension Information //-->
-		<em:id>twitterbird@patrick.cloke</em:id>
+		<em:id>microblog-mailnews@patrick.cloke</em:id>
 		<em:version>0.1pre</em:version>
 		<em:type>2</em:type> <!-- Extension //-->
 
 		<!-- Front End MetaData //-->
-		<em:name>Twitterbird</em:name>
-		<em:description>Adds Twitter/Identi.ca API as an account type.</em:description>
+		<em:name>microblog-mailnews</em:name>
+		<em:description>Adds microblogging as an account type.</em:description>
 		<em:creator>Patrick Cloke</em:creator>
-		<em:homepageURL>http://code.google.com/p/twitterbird/</em:homepageURL>
+		<em:homepageURL>http://code.google.com/p/microblog-mailnews/</em:homepageURL>
 
 		<!-- Internal References //-->
-		<!--<em:aboutURL>chrome://twitterbird/chrome/content/about.xul</em:aboutURL>//-->
-		<!--<em:iconURL>chrome://twitterbird/chrome/content/thundershows.png</em:iconURL>//-->
-		<!--<em:optionsURL>chrome://twitterbird/chrome/content/options.xul</em:optionsURL>//-->
+		<!--<em:aboutURL>chrome://microblog-mailnews/chrome/content/about.xul</em:aboutURL>//-->
+		<!--<em:iconURL>chrome://microblog-mailnews/chrome/content/thundershows.png</em:iconURL>//-->
+		<!--<em:optionsURL>chrome://microblog-mailnews/chrome/content/options.xul</em:optionsURL>//-->
 
 		<!-- Target Applications //-->
 		<em:targetApplication>

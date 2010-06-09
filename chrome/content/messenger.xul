@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN" "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<overlay id="twitterbird-overlay"
+<overlay id="microblog-mailnews-overlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
     <script type="application/x-javascript">
     <![CDATA[
-    function test_twitterbird() {
+    function test_twitter() {
 		Components.utils.import("resource://oauthorizer/modules/oauthconsumer.js");
-		Components.utils.import("resource://twitterbird/twitterbirdUtils.jsm");
-		Components.utils.import("resource://twitterbird/oauthTwitterHelper.jsm");
+		Components.utils.import("resource://microblog-mailnews/mbUtils.jsm");
+		Components.utils.import("resource://microblog-mailnews/oauthTwitterHelper.jsm");
 
 		service = null; // Global
 
@@ -50,7 +50,7 @@
     </script>
 
     <menupopup id="taskPopup">
-        <menuitem id="test_twitterbird" label="Test Twitterbird"
-                  oncommand='test_twitterbird();'/>
+        <menuitem id="test_twitter" label="Test Twitterbird"
+                  oncommand='test_twitter();'/>
     </menupopup>
 </overlay>

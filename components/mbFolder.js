@@ -55,18 +55,18 @@ function array2enum(arr) {
 	};
 }
 
-function twitterFolder() {
+function mbFolder() {
 	this.wrappedJSObject = this;
 	JSExtendedUtils.makeCPPInherits(this,
 		"@mozilla.org/messenger/jsmsgfolder;1");
 }
-twitterFolder.prototype = {
-	classDescription: "Twitterbird folder",
-	contractID: "@mozilla.org/rdf/resource-factory;1?name=twitter",
+mbFolder.prototype = {
+	classDescription: "microblog-mailnews folder",
+	contractID: "@mozilla.org/rdf/resource-factory;1?name=microblog",
 	classID: Components.ID("{6DA245EE-5341-11DF-95E1-7C10E0D72085}"),
 	QueryInterface: JSExtendedUtils.generateQI([]),
 	getIncomingServerType: function () {
-		return "twitter";
+		return "microblog";
 	},
 	getDatabase: function () {
 		if (this._inner["#mDatabase"])
@@ -89,7 +89,7 @@ twitterFolder.prototype = {
 	},
 	updateFolder: function () {
 		let real = this;
-		twitterProtocol.getNewMessages(this);
+		mbProtocol.getNewMessages(this);
 		this._inner.NotifyFolderEvent(atoms["FolderLoaded"]);
 	},
 	get subFolders() {
@@ -139,10 +139,10 @@ twitterFolder.prototype = {
 	}
 };
 
-function twitterDatabase() {}
-twitterDatabase.prototype = {
-	classDescription: "Twitter database",
-	contractID: "@mozilla.org/nsMsgDatabase/msgDB-twitter",
+function mbDatabase() {}
+mbDatabase.prototype = {
+	classDescription: "microblog-mailnews database",
+	contractID: "@mozilla.org/nsMsgDatabase/msgDB-microblog",
 	classID: Components.ID("{9CBB21FC-5341-11DF-A828-1F11E0D72085}"),
 	_xpcom_factory: {
 		createInstance: function (outer, iid) {
@@ -154,5 +154,5 @@ twitterDatabase.prototype = {
 };
 
 function NSGetModule(compMgr, fileSpec) {
-	return XPCOMUtils.generateModule([twitterFolder, twitterDatabase]);
+	return XPCOMUtils.generateModule([mbFolder, mbDatabase]);
 }
